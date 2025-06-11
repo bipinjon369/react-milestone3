@@ -3,34 +3,37 @@ import './App.css'
 import Header from './components/Header.tsx'
 import Task from './components/Task.tsx'
 import TaskHeader from './components/TaskHeader.tsx'
+import Toast from './components/Toast.tsx'
 
 type Task = {
   task: string;
   status: boolean;
 };
 
+type ToastMessage = {
+  message: string;
+  type: 'success' | 'error' | 'info';
+} | null;
+
 function App() {
   const [isTaskAddScreen, setIsTaskAddScreen] = useState(false)
   const [isTaskUpdate, setIsTaskUpdate] = useState(false)
   const [taskName, setTaskName] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [toast, setToast] = useState<ToastMessage>(null)
   const [tasks, setTasks] = useState<Task[]>(() => {
     const stored = localStorage.getItem('tasks');
     return stored ? JSON.parse(stored) : [];
   });
   console.log('Selected Index: ', selectedIndex)
-  // // On the first load, fetch the tasks from local storage
-  // useEffect(() => {
-  //   const storedTasks = localStorage.getItem('tasks')
-  //   if (storedTasks) {
-  //     setTasks(JSON.parse(storedTasks))
-  //   }
-  // }, [])
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToast({ message, type });
+  };
 
   const handleAddTask = () => {
     console.log('Add screen here')
@@ -38,6 +41,7 @@ function App() {
     setIsTaskUpdate(false)
     setTaskName('')
   }
+  
   // Handler to add task
   const addTask = () => {
     if (!taskName.trim()) {
@@ -53,12 +57,15 @@ function App() {
     setTasks([newTask, ...tasks]);
     setIsTaskAddScreen(false)
     setTaskName('')
+    showToast('Task added successfully!', 'success');
   };
 
   const handleDeleteTask = (index: number) => {
     const updatedTasks = tasks.filter((_, i) => i !== index);
     setTasks(updatedTasks);
+    showToast('Task deleted successfully!', 'info');
   };
+  
   // Handler to set the update screen
   const setUpdateScreen = (index: number) => {
     setSelectedIndex(index)
@@ -66,6 +73,7 @@ function App() {
     setIsTaskAddScreen(true)
     setTaskName(tasks[index].task)
   }
+  
   // Handler to update task name
   const handleUpdateTask = () => {
      if (!taskName.trim()) {
@@ -78,6 +86,7 @@ function App() {
     setIsTaskUpdate(false)
     setIsTaskAddScreen(false)
     setTaskName('')
+    showToast('Task updated successfully!', 'success');
   };
 
   // Handler to update the status of the task
@@ -85,10 +94,19 @@ function App() {
     const updatedTasks = [...tasks];
     updatedTasks[index].status = true;
     setTasks(updatedTasks);
+    showToast('Task marked as completed!', 'success');
   };
+  
   return (
     <>
       <Header />
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
       <div className='px-[64px] pt-[47px]'>
         {/* Add Task screen */}
 
